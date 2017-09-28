@@ -20,9 +20,11 @@ $(document).ready(function(){
         console.log(go_top);
         var index_url = 'https://www.hao123.com/?tn=99169695_s_hao_pg';
         if (location.href==index_url) {
-            var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?topId=TR_FS&leafId=50012027&rank=search&type=hot&s=0">to top</a>';
-            $(".baidu-logo-2x").before(sHtmlA);
-            $('#go_top')[0].click();
+            if (get_last_file_name()) {
+                var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?topId=TR_FS&leafId=50012027&rank=search&type=hot&s=0">to top</a>';
+                $(".baidu-logo-2x").before(sHtmlA);
+                $('#go_top')[0].click();
+            }
         } else {
             main();
         }
@@ -31,24 +33,7 @@ $(document).ready(function(){
     //---------to fetch-------
     function main(){
         console.log('main');
-        var myDate = new Date();
-        var year = myDate.getFullYear();    //获取完整的年份(4位,1970-????)
-        var month = 1+myDate.getMonth();       //获取当前月份(0-11,0代表1月)
-        var date = myDate.getDate();        //获取当前日(1-31)
-        var sDate = year+'-'+month+'-'+date+'.csv';
-        var sFileName = GM_getValue("sLastFileName","");
-        var sEndUrl = 'https://top.taobao.com/index.php?leafId=50010850&s=80&type=hot&rank=search&topId=TR_FS';
-        if (sFileName=="") {
-            sFileName = sDate;
-        } else {
-            if (sFileName==sDate) {
-                return false;
-            } else {
-                sFileName = sDate;
-            }
-        }
-
-        GM_setValue("sLastFileName",sDate);
+        get_last_file_name();
         //------to fetch------
         get_mulit_page();
 
@@ -61,6 +46,28 @@ $(document).ready(function(){
         }
 
 
+    }
+
+    //---------is end page--------------
+    function get_last_file_name(){
+        console.log('get_last_file_name');
+        var myDate = new Date();
+        var year = myDate.getFullYear();    //获取完整的年份(4位,1970-????)
+        var month = 1+myDate.getMonth();       //获取当前月份(0-11,0代表1月)
+        var date = myDate.getDate();        //获取当前日(1-31)
+        var sDate = year+'-'+month+'-'+date+'.csv';
+        var sFileName = GM_getValue("sLastFileName","");
+        if (sFileName=="") {
+            sFileName = sDate;
+        } else {
+            if (sFileName==sDate) {
+                return false;
+            } else {
+                sFileName = sDate;
+            }
+        }
+
+        GM_setValue("sLastFileName",sDate);
     }
 
     //---------is end page--------------
