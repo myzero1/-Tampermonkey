@@ -5,7 +5,7 @@
 // @description  try to take over the world!
 // @author       You
 // @match        https://top.taobao.com/*
-// @match        https://www.hao123.com/?tn=99169695_s_hao_pg
+// @match        https://www.baidu.com/?to_top=1
 // @grant GM_setValue
 // @grant GM_getValue
 // @require    http://libs.baidu.com/jquery/1.9.0/jquery.min.js
@@ -17,12 +17,12 @@ $(document).ready(function(){
 
     //---------to top--------------
     function go_top(){
-        console.log(go_top);
-        var index_url = 'https://www.hao123.com/?tn=99169695_s_hao_pg';
-        if (location.href==index_url) {
-            if (get_last_file_name()) {
+        console.log('go_top');
+        var index_url = 'https://www.baidu.com/?to_top=1';
+        if (window.location.href==index_url) {
+            if (get_last_file_name()!=false) {
                 var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?topId=TR_FS&leafId=50012027&rank=search&type=hot&s=0">to top</a>';
-                $(".baidu-logo-2x").before(sHtmlA);
+                $("#lg").before(sHtmlA);
                 $('#go_top')[0].click();
             }
         } else {
