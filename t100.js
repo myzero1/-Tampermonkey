@@ -16,6 +16,9 @@
 
 //---------------------
 $(document).ready(function(){
+
+    //switch_tab();return false;
+
     //deal_gm();return false;
 
     go_top();
@@ -36,16 +39,33 @@ $(document).ready(function(){
     function go_top(){
         console.log('go_top');
         var index_url = 'https://www.baidu.com/?to_top=1';
+        var sToday_fetched = GM_getValue("sToday_fetched");
         if (window.location.href==index_url) {
-            if (get_last_file_name()!=false) {
-                var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?spm=a1z5i.3.3.34.tjDtln&topId=TR_FS&leafId=50012027">to top</a>';
+            if (!sToday_fetched) {
+                var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?topId=TR_FS&leafId=50012032">to top</a>';
                 $("#lg").before(sHtmlA);
                 $('#go_top')[0].click();
             }
         } else {
-            if (get_last_file_name()!=false) {
+            if (!sToday_fetched) {
                 main();
             }
+        }
+    }
+
+    //---------today fetched-----------
+    function today_fetched(){
+        console.log('today_fetched');
+        var myDate = new Date();
+        var year = myDate.getFullYear();    //获取完整的年份(4位,1970-????)
+        var month = 1+myDate.getMonth();       //获取当前月份(0-11,0代表1月)
+        var date = myDate.getDate();        //获取当前日(1-31)
+        var today_fetched = 'fetched_'+year+'_'+month+'_'+date;
+        var yestoday_fetched = GM_getValue("sToday_fetched","");
+        if (yestoday_fetched==today_fetched) {
+             return true;
+        } else {
+            return false;
         }
     }
 
@@ -138,15 +158,32 @@ $(document).ready(function(){
 
     //-----------switch_tab--------------
     function switch_tab(){
-        var has_next = $('.switch-item-selected').next().length;
+        var oNext = $('.switch-item-selected').next();
+        var has_next = oNext.length;
         if (has_next==1) {
-            $('.switch-item-selected').next().find('a')[0].click();
+            oNext.find('a')[0].click();
         } else {
-            //GM_setValue("sYesTodayLastFileName",GM_getValue("sLastFileName"));
+            switch_category();
         }
     }
 
 
+    //-----------switch_category--------------
+    function switch_category(){
+        console.log('switch_category');
+        var oNext = $('.block-expand .params-cont .param-item-selected').next();
+        var has_next = oNext.length;
+        if (has_next==1) {
+            oNext[0].click();
+        } else {
+            var myDate = new Date();
+            var year = myDate.getFullYear();    //获取完整的年份(4位,1970-????)
+            var month = 1+myDate.getMonth();       //获取当前月份(0-11,0代表1月)
+            var date = myDate.getDate();        //获取当前日(1-31)
+            var today_fetched = 'fetched_'+year+'_'+month+'_'+date;
+            GM_setValue("sToday_fetched",today_fetched);
+        }
+    }
 
     //--------get mulit page-----
     function get_mulit_page(){
