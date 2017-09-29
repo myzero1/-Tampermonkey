@@ -77,7 +77,9 @@ $(document).ready(function(){
         var date = myDate.getDate();        //获取当前日(1-31)
         var rank = getUrlParam('rank')==null ? 'sale' : getUrlParam('rank');
         var type = getUrlParam('type')==null ? 'up' : getUrlParam('type');
-        var sDate = rank+'_'+type+'_'+year+'-'+month+'-'+date+'.csv';
+        var leafId = getUrlParam('leafId');
+        var sDate = leafId+'_'+rank+'_'+type+'_'+year+'-'+month+'-'+date+'.csv';
+        //console.log(sDate);return false;
 
         var sFileName = GM_getValue("sLastFileName","");
         var sTabName = rank+'_'+type;
@@ -125,7 +127,8 @@ $(document).ready(function(){
         var date = myDate.getDate();        //获取当前日(1-31)
         var rank = getUrlParam('rank')==null ? 'sale' : getUrlParam('rank');
         var type = getUrlParam('type')==null ? 'up' : getUrlParam('type');
-        var sDate = rank+'_'+type+'_'+year+'-'+month+'-'+date+'.csv';
+        var leafId = getUrlParam('leafId');
+        var sDate = leafId+'_'+rank+'_'+type+'_'+year+'-'+month+'-'+date+'.csv';
         var sTabName = rank+'_'+type;
         GM_setValue(sTabName,sDate);
         //GM_log(GM_listValues());return false;
