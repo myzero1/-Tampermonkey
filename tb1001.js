@@ -19,7 +19,32 @@
 $(document).ready(function(){
     //- business function
 
-    main();
+    go_top();
+
+    /*
+    https://www.baidu.com/?to_top=1
+    https://top.taobao.com/index.php?topId=TR_FS&leafId=50012027&rank=search&type=hot&s=0
+    https://search1.taobao.com/itemlist/default.htm?cat=0&sd=1&viewIndex=1&as=0&spm=a2106.ad1.1000572.d2&commend=all&atype=b&style=list&q=%E5%A5%B3%E9%9E%8Bqu&same_info=1&tid=0&isnew=2&_input_charset=utf-8
+    */
+
+    //--go_top
+    function go_top(){
+        console.log('go_top');
+        var index_url = 'https://www.baidu.com/?to_top=1';
+        var recordedDate = GM_getValue('recordedDate','');
+        var toRecorded = recordedDate == getDateString ? false : true;
+        if (window.location.href==index_url) {
+            if (toRecorded) {
+                var sHtmlA = '<a id="go_top" target="_self" href="https://top.taobao.com/index.php?topId=TR_FS&leafId=50012027&rank=search&type=hot&s=0">to top</a>';
+                $("#lg").before(sHtmlA);
+                $('#go_top')[0].click();
+            }
+        } else {
+            if (toRecorded) {
+                main();
+            }
+        }
+    }
 
     //-- main
 
@@ -76,13 +101,25 @@ $(document).ready(function(){
                     console.log(result.rows[0].url);
                     console.log(window.location.href);
                     console.log(urlIsEqual(result.rows[0].url,window.location.href));
-                    if (urlIsEqual(result.rows[0].url,window.location.href)) {
-                        parse(result.rows[0].url);
-                    } else {
-                        window.location.href = result.rows[0].url;
+
+                    if (window.location.href.indexOf('top.taobao.com') >= 0) {
+                        updateAmount();
+                        //alert(33333);
+
+                        if (urlIsEqual(result.rows[0].url,window.location.href)) {
+                            //parse(result.rows[0].url);
+                            parseTop(result.rows[0].url);
+                        } else {
+                            window.location.href = result.rows[0].url;
+                        }
+                    } else if(window.location.href.indexOf('search1.taobao.com') >= 0){
+                        parseNum(result.rows[0].url);
                     }
+
                 } else {
-                    alert('finished');
+                    //alert('finished');
+                    GM_setValue('recordedDate',getDateString());
+                    window.location.href = 'https://www.baidu.com/?to_top=1';
                 }
             },
             function (tx,err){
@@ -106,26 +143,46 @@ $(document).ready(function(){
     //--parseNum(url);
     function parseNum(url){
         console.log('----parseNum-----');
-        var total = trim($(".total .num").text());
+        var total = trim($(".total .num").text()).replace(/万/, "");
+        var key = trim($(".search-input").attr('value'));
+        var amountInfo = key+'|'+total+'|'+window.location.href;
+        console.log(window.location.href);
+        //alert(amountInfo);
+        GM_setValue( 'amountInfo', amountInfo);
+        window.location.href = 'https://top.taobao.com/index.php?leafId=50012027&rank=search&type=hot&s=80';
+    }
 
-        var sql2 = 'UPDATE key_data SET amount='+total+' WHERE updated="'+getDateString()+'" AND pkey="'+parseUrlParam (url,'q')+'"';
-        window.db.transaction(function(tx){
-            tx.executeSql(sql3,[],function(tx,rs){
-                var sql3 = 'UPDATE url_manager SET status=1 WHERE status=0 AND updated="'+getDateString()+'" AND url="'+url+'"';
-                window.db.transaction(function(tx){
-                    tx.executeSql(sql3,[],function(tx,rs){
-                        location.reload();
-                    },
-                    function (tx,err){
-                        console.log(err.source +'===='+err.message);
+    //--updateAmount();
+    function updateAmount(){
+        console.log('----updateAmount-----');
+        var amountInfo = GM_getValue( 'amountInfo', '' );
+        console.log(amountInfo);
+
+        //  女鞋:300
+        if (amountInfo != '') {
+            var aAmountInfo = amountInfo.split('|');
+            var sql2 = 'UPDATE key_data SET amount='+aAmountInfo[1]+' WHERE updated="'+getDateString()+'" AND pkey="'+aAmountInfo[0]+'"';
+            window.db.transaction(function(tx){
+                tx.executeSql(sql2,[],function(tx,rs){
+
+                    var sql3 = 'UPDATE url_manager SET status=1 WHERE status=0 AND updated="'+getDateString()+'" AND url="'+aAmountInfo[2]+'"';
+                    console.log(sql3);
+                    //alert(77);
+                    window.db.transaction(function(tx){
+                        tx.executeSql(sql3,[],function(tx,rs){
+                            GM_setValue( 'amountInfo', '' );
+                            location.reload();
+                        },
+                        function (tx,err){
+                            console.log(err.source +'===='+err.message);
+                        });
                     });
+                },
+                              function (tx,err){
+                    console.log(err.source +'===='+err.message);
                 });
-            },
-            function (tx,err){
-                console.log(err.source +'===='+err.message);
             });
-        });
-
+        }
     }
 
     //-- parseTop
@@ -142,7 +199,7 @@ $(document).ready(function(){
             var title = $(this).find('.col2 .title').text();
             var focus_bar = $(this).find('.col4 .focus-bar').text();
             var up_down = $(this).find('.col5').text();
-            var up_down_icon_tmp = $(this).find('.col5 .icon-btn-bang-1-trend icon').length;
+            var up_down_icon_tmp = $(this).find('.col5 .icon-btn-bang-1-trend.icon').length;
             var up_down_icon = up_down_icon_tmp==1 ? '+' : '-';
             var up_down_percent = $(this).find('.col6').text();
             var up_down_percent_icon_tmp = $(this).find('.col6 .icon-btn-bang-1-trend icon').length;
@@ -246,6 +303,15 @@ $(document).ready(function(){
         url2S = parseUrlParam(url2,'s');
         url2Q = parseUrlParam(url2,'q');
 
+
+        if (url2Q!=null) {
+            console.log(url1);
+            console.log(url2);
+            console.log(url1Q);
+            console.log(url2Q);
+            return false;
+        }
+
         if (url1Q==url2Q && url2Q!=null) {
             return true;
         } else if (url1Rank==url2Rank && url1Type==url2Type && url1S==url2S) {
@@ -291,4 +357,3 @@ $(document).ready(function(){
     }
 
 });
-
