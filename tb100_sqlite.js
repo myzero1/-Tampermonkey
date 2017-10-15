@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         New Userscript
+// @name         Tampermonkey chrome sqlite
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
@@ -18,6 +18,8 @@
 //---------------------
 $(document).ready(function(){
     //- business function
+
+    clearCookie();
 
     go_top();
 
@@ -252,7 +254,7 @@ $(document).ready(function(){
         createConnection('tb1002');
         var sql = 'CREATE TABLE IF NOT EXISTS url_manager (id INT PRIMARY KEY, url TEXT, updated DATE, status INT, UNIQUE (url, updated));';
         execute(sql);
-        var sql = 'CREATE TABLE IF NOT EXISTS key_data (id INT PRIMARY KEY,pkey TEXT UNIQUE,focus DOUBLE,lift DOUBLE,amount DOUBLE,updated DATE, UNIQUE (pkey, updated));';
+        var sql = 'CREATE TABLE IF NOT EXISTS key_data (id INT PRIMARY KEY,pkey TEXT,focus DOUBLE,lift DOUBLE,amount DOUBLE,updated DATE, UNIQUE (pkey, updated));';
         execute(sql);
     }
 
@@ -354,6 +356,14 @@ $(document).ready(function(){
         });
         console.log(window.queryResult);
         return window.queryResult;
+    }
+
+    function clearCookie(){
+        var keys=document.cookie.match(/[^ =;]+(?=\=)/g);
+        if (keys) {
+            for (var i = keys.length; i--;)
+                document.cookie=keys[i]+'=0;expires=' + new Date( 0).toUTCString()
+        }
     }
 
 });
