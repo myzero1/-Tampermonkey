@@ -20,4 +20,6 @@
 			用SQLiteStudio处理
 		*注意
 			本地数据在清理浏览器缓存时会一并清理掉
+			
+	获取关键词所对应的产品数量 https://suggest.taobao.com/sug?extras=1&code=utf-8&callback=KISSY.Suggest.callback&q=女鞋
 ```
