@@ -19,7 +19,7 @@
 $(document).ready(function(){
     //- business function
 
-    clearCookie();
+    delete_cookie('t', '/','.taobao.com');
 
     go_top();
 
@@ -358,12 +358,11 @@ $(document).ready(function(){
         return window.queryResult;
     }
 
-    function clearCookie(){
-        var keys=document.cookie.match(/[^ =;]+(?=\=)/g);
-        if (keys) {
-            for (var i = keys.length; i--;)
-                document.cookie=keys[i]+'=0;expires=' + new Date( 0).toUTCString()
-        }
+    function delete_cookie( name, path, domain  ) {
+      document.cookie = name + "=" +
+      ((path) ? ";path="+path:"")+
+      ((domain)?";domain="+domain:"") +
+      ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
     }
 
 });
