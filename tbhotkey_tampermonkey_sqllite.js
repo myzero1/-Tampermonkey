@@ -131,7 +131,7 @@ $(document).ready(function(){
     //--getAmount
     function getAmount(){
 
-        var sql = 'SELECT * FROM key_data WHERE amount is null AND updated="'+getDateString() + '"';
+        var sql = 'SELECT * FROM key_data WHERE amount=0 AND updated="'+getDateString() + '"';
         //console.log(sql);
         //var myresult = query(sql);
         //db query Promise对象，
@@ -162,9 +162,18 @@ $(document).ready(function(){
 
     function waiteToFinish(microsecond){
         var t=setTimeout(function(){
-            createConnection('tb1002');
-            var sql = 'update key_data  set amount=0 where amount is null and updated="'+getDateString+'";';
-            execute(sql);
+            var sql = 'UPDATE key_data SET amount=1 WHERE amount=0 AND updated="'+getDateString()+'";';
+            console.log(sql);
+            window.db.transaction(function(tx){
+                tx.executeSql(sql,[],function(tx,rs){
+                    //alert('yes');
+                    //return true;
+                },
+                function (tx,err){
+                    //alert('no');
+                    console.log(err.source +'===='+err.message);
+                });
+            });
 
             setTimeout(function(){
                 window.location.href = 'https://www.baidu.com/?to_top=0';
@@ -288,7 +297,7 @@ $(document).ready(function(){
         createConnection('tb1002');
         var sql = 'CREATE TABLE IF NOT EXISTS url_manager (id INT PRIMARY KEY, url TEXT, updated DATE, status INT, UNIQUE (url, updated));';
         execute(sql);
-        var sql = 'CREATE TABLE IF NOT EXISTS key_data (id INT PRIMARY KEY,pkey TEXT,focus DOUBLE,lift DOUBLE,amount DOUBLE,updated DATE, UNIQUE (pkey, updated));';
+        var sql = 'CREATE TABLE IF NOT EXISTS key_data (id INT PRIMARY KEY,pkey TEXT,focus DOUBLE,lift DOUBLE,amount DOUBLE DEFAULT 0,updated DATE, UNIQUE (pkey, updated));';
         execute(sql);
     }
 
