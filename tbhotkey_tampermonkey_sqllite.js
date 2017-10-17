@@ -94,9 +94,6 @@ $(document).ready(function(){
             tx.executeSql(sql,[],function(tx,result){
                 console.log(result.rows.length);
                 if (result.rows.length==1) {
-                    console.log(result.rows[0].url);
-                    console.log(window.location.href);
-                    console.log(urlIsEqual(result.rows[0].url,window.location.href));
 
                     if (window.location.href.indexOf('top.taobao.com') >= 0) {
                         // updateAmount();
@@ -108,8 +105,6 @@ $(document).ready(function(){
                         } else {
                             window.location.href = result.rows[0].url;
                         }
-                    } else if(window.location.href.indexOf('search1.taobao.com') >= 0){
-                        parseNum(result.rows[0].url);
                     }
 
                 } else {
@@ -133,18 +128,6 @@ $(document).ready(function(){
         }
     }
 
-    //--parseNum(url);
-    function parseNum(url){
-        console.log('----parseNum-----');
-        var total = trim($(".total .num").text()).replace(/万/, "");
-        var key = trim($(".search-input").attr('value'));
-        var amountInfo = key+'|'+total+'|'+window.location.href;
-        console.log(window.location.href);
-        //alert(amountInfo);
-        GM_setValue( 'amountInfo', amountInfo);
-        window.location.href = 'https://top.taobao.com/index.php?leafId=50012027&rank=search&type=hot&s=80';
-    }
-
     //--getAmount
     function getAmount(){
 
@@ -154,7 +137,6 @@ $(document).ready(function(){
         //db query Promise对象，
         window.db.transaction(function (tx){
             tx.executeSql(sql,[],function(tx,result){
-                console.log(result.rows.length);
                 var resultRows = result.rows;
                 if (resultRows.length>0) {
                     for (var i = resultRows.length - 1; i >= 0; i--) {
@@ -166,16 +148,28 @@ $(document).ready(function(){
                     }
 
                     //alert('get amount finished');
-                    // window.location.href = 'https://www.baidu.com/?to_top=0';
+                    waiteToFinish(15000);
                 } else {
                     //alert('get amount finished');
-                    // window.location.href = 'https://www.baidu.com/?to_top=0';
+                    waiteToFinish(0);
                 }
             },
             function (tx,err){
                 console.log(err.source +'===='+err.message);
             });
         });
+    }
+
+    function waiteToFinish(microsecond){
+        var t=setTimeout(function(){
+            createConnection('tb1002');
+            var sql = 'update key_data  set amount=0 where amount is null and updated="'+getDateString+'";';
+            execute(sql);
+
+            setTimeout(function(){
+                window.location.href = 'https://www.baidu.com/?to_top=0';
+            },3000);
+        },microsecond);
     }
 
 
@@ -195,7 +189,6 @@ $(document).ready(function(){
                 timestamp = timestamp + i + 1;
 
                 if (result[i][0] == sKey ) {
-                    console.log(row);
                     keyValues.push('('+row.id+', "'+row.pkey+'", '+row.focus+','+row.lift+','+result[i][1]+',"'+dateTmp+'")');
                 } else if (result[i][0].indexOf('鞋')>=0) {
                     keyValues.push('('+timestamp+', "'+result[i][0]+'", 100, 0,'+result[i][1]+',"'+dateTmp+'")');
