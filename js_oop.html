@@ -42,10 +42,18 @@ This is a test for oop by js
 
 	PAGE.tc = PAGE.utils.utilsExtends([PAGE.utils,PAGE.ta,PAGE.tb],{
 		"tcpa" : "tcpa",
-		"tcfa" : function() {
-			alert('tcfa');
+		"tcfa" : function(msg) {
+			alert(msg);
 		}
 	});
+
+	// PAGE.tc = {
+	// 	"tcpa" : "tcpa",
+	// 	"tcfa" : function(msg) {
+	// 		alert(msg);
+	// 	}
+	// };
+	// PAGE.tc = PAGE.utils.utilsExtends([PAGE.utils,PAGE.ta,PAGE.tb],PAGE.tc);
 
 	PAGE.main = function(){
 		alert(PAGE.tc.tapa);
@@ -53,7 +61,7 @@ This is a test for oop by js
 		alert(PAGE.tc.tcpa);
 		PAGE.tc.tafa();
 		PAGE.tc.tbfa();
-		PAGE.tc.tcfa();
+		PAGE.tc.tcfa('msg in tcfa');
 	}
 
 	PAGE.main();
