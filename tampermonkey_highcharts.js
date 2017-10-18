@@ -20,7 +20,40 @@ $(document).ready(function(){
     sHtmlH = '<div id="highcharts" width="800" height="600"></div>';
     $('body').prepend(sHtmlH);
 
-        $('#highcharts').highcharts({
+    var mydata = {
+    	0:{"pkey":"a","updated":"2017-10-18","amount":"1"},
+    	1:{"pkey":"a","updated":"2017-10-17","amount":"2"},
+    	2:{"pkey":"a","updated":"2017-10-16","amount":"3"},
+    	3:{"pkey":"b","updated":"2017-10-18","amount":"1"},
+    	4:{"pkey":"b","updated":"2017-10-17","amount":"2"},
+    	5:{"pkey":"b","updated":"2017-10-16","amount":"1"},
+    	6:{"pkey":"c","updated":"2017-10-18","amount":"4"},
+    	7:{"pkey":"c","updated":"2017-10-17","amount":"5"}
+    }
+
+
+    var mydataClassed = {};
+    for (var key in mydata) {
+    	var tmp = {};
+    	tmp[mydata[key]['updated'] = mydata[key]['amount']
+    	mydataClassed[mydata[key]['pkey']] = tmp;
+    }
+
+    console.log(mydataClassed);
+
+
+    var max = 0
+    for (var key in mydataClassed) {
+    	var length = mydataClassed[key].length;
+    	if (length > max) {
+    		max = length;
+    	}
+    }
+
+
+
+
+    $('#highcharts').highcharts({
         chart: {
             type: 'line'
         },
