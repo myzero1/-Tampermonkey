@@ -22,12 +22,17 @@ $(document).ready(function(){
         "fMain" : null,
         "_oUtils" : null,
         "_fGoTbTop" : null,
-        "_fRun" : null,
         "_pDb" : null,
         "_fDatabaseInit" : null,
         "_fUrlManagerInit" : null,
-        "_fUrlManagerGetUrl" : null,
         "_fParseTop" : null,
+        "_fGoTbTop" : null,
+        "_fFinish" : null,
+        "_fGpdateDBKeyData" : null,
+        "_fGetSuggestions" : null,
+        "_fUpdateAmount" : null,
+        "_fUrlManagerGetUrl" : null,
+        "_fRun" : null,
         "_end" : null
     };
 
@@ -105,8 +110,8 @@ $(document).ready(function(){
     TB._pDb = openDatabase('tb100','1.0','This is a datatable for tb100',1024*100);//数据库名 版本 数据库描述 大小
 
     TB._fDatabaseInit = function(){
-        var sqlUrlManager = 'CREATE TABLE IF NOT EXISTS url_manager (id INT PRIMARY KEY, url TEXT, updated DATE, status INT, UNIQUE (url, updated));';
-        var sqlKeyData = 'CREATE TABLE IF NOT EXISTS key_data (id INT PRIMARY KEY,pkey TEXT,focus DOUBLE,lift DOUBLE,amount DOUBLE DEFAULT 0,updated DATE, UNIQUE (pkey, updated));';
+        var sqlUrlManager = 'CREATE TABLE IF NOT EXISTS url_manager (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT, updated DATE, status INT, UNIQUE (url, updated));';
+        var sqlKeyData = 'CREATE TABLE IF NOT EXISTS key_data (id INTEGER PRIMARY KEY AUTOINCREMENT,pkey TEXT,focus DOUBLE,lift DOUBLE,amount DOUBLE DEFAULT 0,updated DATE, UNIQUE (pkey, updated));';
 
         TB._pDb.transaction(function(tx){
             tx.executeSql(sqlUrlManager,[],function(tx,rs){
@@ -131,12 +136,10 @@ $(document).ready(function(){
         var baseUrls = new Array('https://top.taobao.com/index.php?leafId=50012027&rank=search&type=hot&s=');
         var dateTmp = TB._oUtils.fGetDateString();
         var urlValues = new Array();
-        var timestamp=new Date().getTime();
         for (var i = baseUrls.length - 1; i >= 0; i--) {
             for (var j = 0; j < 5; j++) {
                 var url = baseUrls[i] + 20*j;
-                timestamp = timestamp + i + j + 1;
-                urlValues.push('('+timestamp+', "'+url+'", "'+dateTmp+'", 0)');
+                urlValues.push('(NULL, "'+url+'", "'+dateTmp+'", 0)');
             }
         }
 
@@ -156,11 +159,8 @@ $(document).ready(function(){
 
     TB._fParseTop = function(url){
         var rows = new Array();
-        var i = 0;
         $('.J_contentRow .row').each(function(){
-            i++;
             var dateTmp = TB._oUtils.fGetDateString();
-            var timestamp=new Date().getTime() + i;
 
             var title = $(this).find('.col2 .title').text();
             var focus_bar = $(this).find('.col4 .focus-bar').text();
@@ -171,7 +171,7 @@ $(document).ready(function(){
             var up_down_percent_icon_tmp = $(this).find('.col6 .icon-btn-bang-1-trend icon').length;
             var up_down_percent_icon = up_down_percent_icon_tmp==1 ? '+' : '-';
 
-            var row = '("'+timestamp+'","'+
+            var row = '(NULL,"'+
                 TB._oUtils.fTrim(title)+'","'+
                 TB._oUtils.fTrim(focus_bar)+'","'+
                 TB._oUtils.fTrim(up_down_icon)+
@@ -202,7 +202,21 @@ $(document).ready(function(){
         });
     };
 
-    TB._fGpdateDBKeyData = function(rows,response){
+    TB._fFinish = function(){
+        var sql = 'UPDATE key_data SET amount=1 WHERE amount=0 AND updated="'+
+            TB._oUtils.fGetDateString()+'";';
+        TB._pDb.transaction(function(tx){
+            tx.executeSql(sql,[],function(tx,rs){
+                console.log("set amount to 1");
+                window.location.href = 'https://www.baidu.com/?to_top=0';
+            },
+            function (tx,err){
+                console.log(err.source +'===='+err.message);
+            });
+        });
+    };
+
+    TB._fGpdateDBKeyData = function(rows,response,bIsEnd){
         var sNullRes = 'KISSY.Suggest.callback({"result":[]})';
 
         if(response.status==200 && response.responseText != sNullRes){
@@ -212,18 +226,15 @@ $(document).ready(function(){
 
             var dateTmp = TB._oUtils.fGetDateString();
             var keyValues = new Array();
-            var timestamp=new Date().getTime();
             var result = oResponseJson.result;
             for (var i in result) {
-                timestamp = timestamp + i + 1;
                 for (var j in rows) {
                     if (rows[j]['pkey'] == result[i][0]) {
                         var row = rows[j];
-                        console.log(1);
-                        keyValues.push('('+row.id+', "'+row.pkey+'", '+row.focus+','+row.lift+','+result[i][1]+',"'+dateTmp+'")');
+                        keyValues.push('(NULL, "'+row.pkey+'", '+row.focus+','+row.lift+','+result[i][1]+',"'+dateTmp+'")');
                     } else {
                         if (result[i][0].indexOf('鞋')>=0 && result[i][0].indexOf('女')>=0 ) {
-                            keyValues.push('('+timestamp+', "'+result[i][0]+'", 100, 0,'+result[i][1]+',"'+dateTmp+'")');
+                            keyValues.push('(NULL, "'+result[i][0]+'", 100, 0,'+result[i][1]+',"'+dateTmp+'")');
                         }
                     }
                 }
@@ -234,7 +245,9 @@ $(document).ready(function(){
                 var sql = 'INSERT OR REPLACE INTO key_data (id,pkey,focus,lift,amount,updated) VALUES ' + sValues;
                 TB._pDb.transaction(function(tx){
                     tx.executeSql(sql,[],function(tx,rs){
-                        // ok
+                        if (bIsEnd) {
+                            TB._fFinish();
+                        }
                     },
                     function (tx,err){
                         console.log(err.source +'===='+err.message);
@@ -245,7 +258,7 @@ $(document).ready(function(){
 
     };
 
-    TB._fGetSuggestions = function(sKeyNew,rows){
+    TB._fGetSuggestions = function(sKeyNew,rows,bIsEnd){
         GM_xmlhttpRequest({
             method: "GET",
             url: "https://suggest.taobao.com/sug?extras=1&code=utf-8&callback=KISSY.Suggest.callback&q="+sKeyNew,
@@ -258,29 +271,10 @@ $(document).ready(function(){
                     var sResponse = response.responseText;
                     var sResponseJson = sResponse.replace(/KISSY.Suggest.callback/,'');
                     var oResponseJson = eval(sResponseJson);
-                    TB._fGpdateDBKeyData(rows,response);
+                    TB._fGpdateDBKeyData(rows,response,bIsEnd);
                 }
             }
         });
-    };
-
-    TB._fWaiteToFinish = function(microsecond){
-        var t=setTimeout(function(){
-            var sql = 'UPDATE key_data SET amount=1 WHERE amount=0 AND updated="'+
-                TB._oUtils.fGetDateString()+'";';
-            TB._pDb.transaction(function(tx){
-                tx.executeSql(sql,[],function(tx,rs){
-                    console.log("set amount to 1");
-                },
-                function (tx,err){
-                    console.log(err.source +'===='+err.message);
-                });
-            });
-
-            setTimeout(function(){
-                window.location.href = 'https://www.baidu.com/?to_top=0';
-            },3000);
-        },microsecond);
     };
 
     TB._fUpdateAmount = function(){
@@ -293,11 +287,11 @@ $(document).ready(function(){
                     for (var i = resultRows.length - 1; i >= 0; i--) {
                         var sKey = resultRows[i].pkey;
                         var sKeyNew = TB._oUtils.fGetNewKey(sKey);
-                        TB._fGetSuggestions(sKeyNew,resultRows);
+                        var bIsEnd = i == resultRows.length - 1 ? true : false;
+                        TB._fGetSuggestions(sKeyNew,resultRows,bIsEnd);
                     }
-                    TB._fWaiteToFinish(15000);
                 } else {
-                    TB._fWaiteToFinish(0);
+                    TB._fFinish();
                 }
             },
             function (tx,err){
@@ -335,8 +329,6 @@ $(document).ready(function(){
         TB._fUrlManagerInit();
         TB._fUrlManagerGetUrl();
     };
-
-
 
     TB.fMain = function(){
         TB._oUtils.fDeleteCookie('t', '/','.taobao.com');
