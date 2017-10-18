@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+This is a test for oop by js
+
+<script type="text/javascript">
+	var PAGE = {};
+
+	PAGE.utils = {
+		"utilsExtends" : function(parentObjArray,childObj) {
+			console.log(parentObjArray);
+			for (var i = parentObjArray.length - 1; i >= 0; i--) {
+				for (var key in parentObjArray[i]) {
+					if (key in childObj) {
+						// pass
+					} else {
+						childObj[key] = parentObjArray[i][key];
+					}
+				}
+			}
+
+			return childObj;
+		}
+	}
+
+	PAGE.ta = {
+		"tapa" : "tapa",
+		"tafa" : function() {
+			alert('tafa');
+		}
+	}
+
+	PAGE.tb = {
+		"tbpa" : "tbpa",
+		"tbfa" : function() {
+			alert('tbfa');
+		}
+	}
+
+	PAGE.tc = PAGE.utils.utilsExtends([PAGE.utils,PAGE.ta,PAGE.tb],{
+		"tcpa" : "tcpa",
+		"tcfa" : function() {
+			alert('tcfa');
+		}
+	});
+
+	PAGE.main = function(){
+		alert(PAGE.tc.tapa);
+		alert(PAGE.tc.tbpa);
+		alert(PAGE.tc.tcpa);
+		PAGE.tc.tafa();
+		PAGE.tc.tbfa();
+		PAGE.tc.tcfa();
+	}
+
+	PAGE.main();
+
+
+
+</script>
+
+
+
+</body>
+</html>
