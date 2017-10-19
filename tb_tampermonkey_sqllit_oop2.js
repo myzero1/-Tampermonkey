@@ -220,13 +220,13 @@ $(document).ready(function(){
     };
 
     TB._fSelectable = function(items,highchartData){
-        var sHtml = '<ol id="selectable">';
+        var sHtml = '<div style="overflow: hidden;"><ol id="selectable">';
         for (var key in items) {
             if (undefined!=items[key]) {
                 sHtml = sHtml + '<li class="ui-widget-content" name="'+items[key]+'">'+items[key]+'</li>';
             }
         }
-        sHtml = sHtml + '</ol>';
+        sHtml = sHtml + '</ol></div>';
         // $('#highcharts').after(sHtml);
         $('body').prepend(sHtml);
 
@@ -234,8 +234,8 @@ $(document).ready(function(){
           <style>\
           #selectable .ui-selecting { background: #FECA40; }\
           #selectable .ui-selected { background: #F39814; color: white; }\
-          #selectable { list-style-type: none; margin: 0; padding: 0; width: 1000px; }\
-          #selectable li { margin: 0; padding: 1px; float: left; width: 100px; height: 24px; font-size: 12px; text-align: center; border: 1px solid #aaa;}\
+          #selectable { overflow: hidden; list-style-type: none; margin: 0; padding: 0; width: 100vw; }\
+          #selectable li { cursor: default; margin: 0; padding: 1px; float: left; width: 100px; height: 24px; font-size: 12px; text-align: center; border: 1px solid #aaa;}\
           </style>\
         ';
 
@@ -275,20 +275,20 @@ $(document).ready(function(){
        var chart =  $('#highcharts').highcharts({
             chart: {
                 type: 'spline',
-                height: 650
+                height: 420
             },
             title: {
-                text: '月平均气温'
+                text: '关键词搜索热度走势图'
             },
             subtitle: {
-                text: '数据来源: WorldClimate.com'
+                text: '数据来源: https://top.taobao.com'
             },
             xAxis: {
                 categories: highchartData['categories']
             },
             yAxis: {
                 title: {
-                    text: '气温 (°C)'
+                    text: '每个产品的搜索热度'
                 }
             },
             plotOptions: {
@@ -304,7 +304,12 @@ $(document).ready(function(){
                     }
                 }
             },
-            series: highchartData['series']
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'middle'
+            },
+            series: highchartData['series'],
         });
     };
 
@@ -353,7 +358,7 @@ $(document).ready(function(){
                         for (var dIndex in aDays) {
                             var name = '"'+_oKeys[kIndex]['pkey']+'_'+aDays[dIndex]+'"';
                             if ("undefined" != typeof rowsClassed[name]) {
-                                serieData.push(rowsClassed[name]['focus']);
+                                serieData.push(rowsClassed[name]['focus'] / rowsClassed[name]['amount']);
                             } else {
                                 serieData.push(0);
                             }
@@ -362,8 +367,8 @@ $(document).ready(function(){
                         highchartData['series'].push(serieItem);
                     }
 
-                    var chart = TB._fHighcharts(highchartData,selectableItem);
                     TB._fSelectable(selectableItem,highchartData);
+                    var chart = TB._fHighcharts(highchartData,selectableItem);
                 },
                 function (tx,err){
                     console.log(err.source +'===='+err.message);
