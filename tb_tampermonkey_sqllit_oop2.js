@@ -220,14 +220,25 @@ $(document).ready(function(){
 
 
     TB._fHighcharts = function(highchartData){
+        sHtmlH = '<button id="button">Get first series</button>';
+        $('body').prepend(sHtmlH);
+
+
+
         sHtmlH = '<div id="highcharts" width="800" height="800"></div>';
         $('body').prepend(sHtmlH);
 
+
+
+
+
+
         // var highchartData = TB._fHighchartData();
 
-        $('#highcharts').highcharts({
+       var chart =  $('#highcharts').highcharts({
             chart: {
-                type: 'line'
+                type: 'spline',
+                height: 650
             },
             title: {
                 text: '月平均气温'
@@ -244,22 +255,37 @@ $(document).ready(function(){
                 }
             },
             plotOptions: {
-                line: {
-                    dataLabels: {
-                        enabled: true          // 开启数据标签
+                spline: {
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 3
+                        }
                     },
-                    enableMouseTracking: false // 关闭鼠标跟踪，对应的提示框、点击事件会失效
+                    marker: {
+                        enabled: false
+                    }
                 }
             },
             series: highchartData['series']
         });
-    }
+
+    $('#button').click(function () {
+        var chart = $('#highcharts').highcharts(),
+        series = chart.get('女鞋');
+        series.hide();
+
+        alert('The first series\' name is ' + series.name);
+    });
+        return chart;
+
+    };
 
     TB._fHighchartData = function(){
         var highchartData = {},_oKeys,_oKeyDatas;
 
         var sql = 'SELECT * FROM key_data WHERE amount>1 AND updated="'+
-            TB._oUtils.fGetDateString() + '"';
+            TB._oUtils.fGetDateString() + '" ORDER BY focus DESC';
         TB._pDb.transaction(function (tx){
             tx.executeSql(sql,[],function(tx,result){
                 var _oKeys = result.rows;
@@ -280,9 +306,10 @@ $(document).ready(function(){
 
                     for (var kIndex in _oKeys) {
                         var serieItem = {
+                            'id' : _oKeys[kIndex]['pkey'],
                             'name' : _oKeys[kIndex]['pkey'],
                             'data' : 'tem'
-                        }
+                        };
                         var serieData = new Array();
 
                         for (var dIndex in aDays) {
@@ -297,7 +324,7 @@ $(document).ready(function(){
                         highchartData['series'].push(serieItem);
                     }
 
-                    TB._fHighcharts(highchartData);
+                    var chart = TB._fHighcharts(highchartData);
                 },
                 function (tx,err){
                     console.log(err.source +'===='+err.message);
@@ -307,28 +334,7 @@ $(document).ready(function(){
                 console.log(err.source +'===='+err.message);
             });
         });
-
-
-
-
-
-
-
-
-        // highchartData['categories'] = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
-        // highchartData['series'] = [{
-        //         name: '东京',
-        //         data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
-        //     }, {
-        //         name: '伦敦',
-        //         data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
-        //     }];
-
-        // console.log(highchartData);
-
-        // return highchartData;
-    }
-
+    };
 
     TB._fFinish = function(){
         var sql = 'UPDATE key_data SET amount=1 WHERE amount=0 AND updated="'+
