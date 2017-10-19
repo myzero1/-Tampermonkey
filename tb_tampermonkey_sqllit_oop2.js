@@ -223,7 +223,7 @@ $(document).ready(function(){
         var sHtml = '<div style="overflow: hidden;"><ol id="selectable">';
         for (var key in items) {
             if (undefined!=items[key]) {
-                sHtml = sHtml + '<li class="ui-widget-content" name="'+items[key]+'">'+items[key]+'</li>';
+                sHtml = sHtml + '<li class="ui-widget-content ui-selected" name="'+items[key]+'">'+items[key]+'</li>';
             }
         }
         sHtml = sHtml + '</ol></div>';
@@ -235,7 +235,7 @@ $(document).ready(function(){
           #selectable .ui-selecting { background: #FECA40; }\
           #selectable .ui-selected { background: #F39814; color: white; }\
           #selectable { overflow: hidden; list-style-type: none; margin: 0; padding: 0; width: 100vw; }\
-          #selectable li { cursor: default; margin: 0; padding: 1px; float: left; width: 100px; height: 24px; font-size: 12px; text-align: center; border: 1px solid #aaa;}\
+          #selectable li { overflow: hidden; cursor: default; margin: 0; padding: 1px; float: left; width: 60px; height: 16px; font-size: 12px; text-align: center; border: 1px solid #aaa;}\
           </style>\
         ';
 
@@ -273,14 +273,14 @@ $(document).ready(function(){
        var chart =  $('#highcharts').highcharts({
             chart: {
                 type: 'spline',
-                height: 420
+                height: 500
             },
             title: {
                 text: '关键词搜索热度走势图'
             },
-            subtitle: {
-                text: '数据来源: https://top.taobao.com'
-            },
+            //subtitle: {
+             //   text: '数据来源: https://top.taobao.com'
+            //},
             xAxis: {
                 categories: highchartData['categories']
             },
@@ -301,13 +301,18 @@ $(document).ready(function(){
                         enabled: false
                     }
                 }
-            },/*
+            },
             legend: {
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'middle'
-                verticalAlign: 'middle'
-            },*/
+                //layout: 'vertical',
+                align: 'left',
+                y: 30,
+                verticalAlign: 'top',
+                itemStyle: {
+                    color: '#000000',
+                    fontWeight: 'normal',
+                    lineHeight:20
+                }
+            },
             series: highchartData['series'],
         });
     };
@@ -323,7 +328,7 @@ $(document).ready(function(){
         var highchartData = {},_oKeys,_oKeyDatas;
 
         var sql = 'SELECT * FROM key_data WHERE amount>1 AND updated="'+
-            TB._oUtils.fGetDateString() + '" ORDER BY focus DESC';
+            TB._oUtils.fGetDateString() + '" ORDER BY (focus/amount) DESC';
         TB._pDb.transaction(function (tx){
             tx.executeSql(sql,[],function(tx,result){
                 var _oKeys = result.rows;
