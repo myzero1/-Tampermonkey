@@ -106,7 +106,9 @@ $(document).ready(function(){
             var dateTemp;
             var flag = 1;
             for (var i = 0; i < iDays; i++) {
-                dateTemp = myDate.getFullYear()+"-"+(myDate.getMonth()+1)+"-"+myDate.getDate();
+                var month = (myDate.getMonth()+1) < 10 ? '0'+(myDate.getMonth()+1) : (myDate.getMonth()+1);
+                var day = (myDate.getDate()) < 10 ? '0'+(myDate.getDate()) : (myDate.getDate());
+                dateTemp = myDate.getFullYear()+"-"+month+"-"+day;
                 dateArray.push(dateTemp);
                 myDate.setDate(myDate.getDate() + flag);
             }
@@ -332,8 +334,11 @@ $(document).ready(function(){
         TB._pDb.transaction(function (tx){
             tx.executeSql(sql,[],function(tx,result){
                 var _oKeys = result.rows;
-                var myFlag = 7;
-                var aDays = TB._oUtils.fGetDays(myFlag);
+                //var myFlag = 9;
+                TB._pAgoDay = 90;
+                //var aDays = TB._oUtils.fGetDays(myFlag);
+                var aDays = TB._oUtils.fGetDays(TB._pAgoDay);
+                //console.log(aDays);
                 highchartData['categories'] = aDays;
                 highchartData['series'] = new Array();
 
@@ -370,6 +375,28 @@ $(document).ready(function(){
                         serieItem['data'] = serieData;
                         highchartData['series'].push(serieItem);
                     }
+
+                    var sHtml = '<br><div><span>前几天数据(最长最近90天)：</span><input id="num_day_ago" type="text"/><button id="num_day_ago_b">确定</button></div><br>';
+                    $('body').prepend(sHtml);
+                    $("#num_day_ago_b").click(function(){
+                        TB._pAgoDay = $("#num_day_ago").val();
+                        console.log(TB._pAgoDay);
+                        var start = aDays.length-parseInt(TB._pAgoDay);
+                        var end = aDays.length;
+                        var highchartDataNew =  {};
+                        highchartDataNew['categories'] = aDays.slice(start, end);
+                        var series = new Array();
+                        for(var key in highchartData['series']) {
+                            var tmp = {};
+                            tmp['name'] = highchartData['series'][key]['name'];
+                            tmp['id'] = highchartData['series'][key]['id'];
+                            tmp['data'] = highchartData['series'][key]['data'].slice(start,end);
+                            series.push(tmp);
+                        }
+                        highchartDataNew['series'] = series;
+                        $('#highcharts').highcharts().destroy();
+                        TB._fHighchartsCreate(highchartDataNew,selectableItem);
+                    });
 
                     TB._fSelectable(selectableItem,highchartData);
                     var chart = TB._fHighcharts(highchartData,selectableItem);
