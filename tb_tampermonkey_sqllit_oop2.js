@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         tb_tampermonkey_sqllit_oop
+// @name         tb_tampermonkey_sqllit_oop2
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  get taobao hot key data
@@ -101,13 +101,13 @@ $(document).ready(function(){
         "fGetDays" : function(iDays){
             var myDate = new Date(); //获取今天日期
             myDate.setDate(myDate.getDate() - iDays + 1);
-            var dateArray = []; 
-            var dateTemp; 
-            var flag = 1; 
+            var dateArray = [];
+            var dateTemp;
+            var flag = 1;
             for (var i = 0; i < iDays; i++) {
-                dateTemp = myDate.getFullYear()+"-"+(myDate.getMonth()+1)+"-"+myDate.getDate();
-                dateArray.push(dateTemp);
-                myDate.setDate(myDate.getDate() + flag);
+                dateTemp = myDate.getFullYear()+"-"+(myDate.getMonth()+1)+"-"+myDate.getDate();
+                dateArray.push(dateTemp);
+                myDate.setDate(myDate.getDate() + flag);
             }
             return dateArray;
         }
@@ -163,7 +163,6 @@ $(document).ready(function(){
         //var sql = 'INSERT OR IGNORE INTO url_manager (id,url,updated) VALUES ((select last_insert_rowid() from url_manager), "'+url+'", "'+dateTmp+'")';
         var sValues = urlValues.join(',');
         var sql = 'INSERT OR IGNORE INTO url_manager (id,url,updated,status) VALUES ' + sValues;
-        console.log(sql);
         TB._pDb.transaction(function(tx){
             tx.executeSql(sql,[],function(tx,rs){
                 console.log('_urlManagerInit is ok.');
@@ -266,60 +265,43 @@ $(document).ready(function(){
                 var _oKeys = result.rows;
                 var myFlag = 7;
                 var aDays = TB._oUtils.fGetDays(myFlag);
-                console.log(aDays);
-
-                var categories = new Array();
-                for (var key in _oKeys) {
-                    categories.push(_oKeys[key]["updated"]);
-                }
-                highchartData['categories'] = categories;
+                highchartData['categories'] = aDays;
                 highchartData['series'] = new Array();
 
-                for (var k in _oKeys) {
-                    var sql2 = 'SELECT * FROM key_data WHERE amount>1 AND updated>="'+
-                        aDays[0] + '" AND pkey="'+_oKeys[k]['pkey']+'"';
-                    tx.executeSql(sql2,[],function(tx,result){
-                        var rows = result.rows;
+                var sql2 = 'SELECT * FROM key_data WHERE amount>1 AND updated>="'+
+                    aDays[0] + '"';
+                tx.executeSql(sql2,[],function(tx,result){
+                    var rows = result.rows;
+                    var rowsClassed = {};
+                    for (var key in rows) {
+                        var name = '"'+rows[key]['pkey']+'_'+rows[key]['updated']+'"';
+                        rowsClassed[name] = rows[key];
+                    }
+
+                    for (var kIndex in _oKeys) {
+                        var serieItem = {
+                            'name' : _oKeys[kIndex]['pkey'],
+                            'data' : 'tem'
+                        }
                         var serieData = new Array();
 
-                        for (var i = 0; i < aDays.length; i++) {
-                            var hasAmount = false;
-                            for (var k2 in rows) {
-                                if (aDays[i]==rows[k2]['updated']) {
-                                    serieData.push(rows[k2]['amount']);
-                                    hasAmount = true;
-                                }
-                            }
-
-                            if (!hasAmount) {
+                        for (var dIndex in aDays) {
+                            var name = '"'+_oKeys[kIndex]['pkey']+'_'+aDays[dIndex]+'"';
+                            if ("undefined" != typeof rowsClassed[name]) {
+                                serieData.push(rowsClassed[name]['focus']);
+                            } else {
                                 serieData.push(0);
                             }
-                            
                         }
+                        serieItem['data'] = serieData;
+                        highchartData['series'].push(serieItem);
+                    }
 
-                        if (rows.length>0) {
-                            var serieItem = {
-                                'name' : rows[0]['pkey'],
-                                'data' : serieData
-                            }
-                            highchartData['series'].push(serieItem);
-                        }
-                    },
-                    function (tx,err){
-                        console.log(err.source +'===='+err.message);
-                    });
-                }
-
-                console.log(highchartData);
-
-                setTimeout(function(){
                     TB._fHighcharts(highchartData);
-                },10000);
-
-                
-
-
-
+                },
+                function (tx,err){
+                    console.log(err.source +'===='+err.message);
+                });
             },
             function (tx,err){
                 console.log(err.source +'===='+err.message);
