@@ -260,8 +260,6 @@ $(document).ready(function(){
             }
 
             $('#highcharts').highcharts().destroy();
-              console.log(highchartData);
-              console.log(selected);
             // TB._fHighcharts(highchartData,items);
             TB._fHighchartsCreate(highchartData,items);
 
