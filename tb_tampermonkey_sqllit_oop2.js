@@ -219,7 +219,7 @@ $(document).ready(function(){
         });
     };
 
-    TB._fSelectable = function(items){
+    TB._fSelectable = function(items,highchartData){
         var sHtml = '<ol id="selectable">';
         for (var key in items) {
             if (undefined!=items[key]) {
@@ -243,37 +243,35 @@ $(document).ready(function(){
 
         $( "#selectable" ).selectable({
           stop: function() {
-            var chart = $('#highcharts').highcharts();
+            var selected = {};
+            $( ".ui-selected", this ).each(function() {
+                var name = $( this ).attr( 'name' );
+                selected[name] = null;
+            });
 
-            for (var key in items) {
-                if (undefined!=items[key]) {
-                    series = chart.get(items[key]);
-                    console.log(1);
-                    series.hide();
+            for (var key in highchartData['series']) {
+                if (highchartData['series'][key]['name'] in selected) {
+                    highchartData['series'][key]['selected'] = true;
+                    highchartData['series'][key]['visible'] = true;
+                } else {
+                    highchartData['series'][key]['selected'] = false;
+                    highchartData['series'][key]['visible'] = false;
                 }
             }
 
-            $( ".ui-selected", this ).each(function() {
-                var name = $( this ).attr( 'name' );
-                series = chart.get(name);
-                series.show();
-            });
+            $('#highcharts').highcharts().destroy();
+              console.log(highchartData);
+              console.log(selected);
+            // TB._fHighcharts(highchartData,items);
+            TB._fHighchartsCreate(highchartData,items);
+
             return false;
           }
         });
 
     };
 
-    TB._fHighcharts = function(highchartData,selectableItem){
-        sHtmlH = '<button id="button">Get first series</button>';
-        $('body').prepend(sHtmlH);
-
-
-
-        sHtmlH = '<div id="highcharts" width="800" height="800"></div>';
-        $('body').prepend(sHtmlH);
-
-
+    TB._fHighchartsCreate = function(highchartData,selectableItem){
        var chart =  $('#highcharts').highcharts({
             chart: {
                 type: 'spline',
@@ -308,16 +306,13 @@ $(document).ready(function(){
             },
             series: highchartData['series']
         });
+    };
 
-    $('#button').click(function () {
-        var chart = $('#highcharts').highcharts(),
-        series = chart.get('女鞋');
-        series.hide();
+    TB._fHighcharts = function(highchartData,selectableItem){
+        sHtmlH = '<div id="highcharts" width="800" height="800"></div>';
+        $('body').prepend(sHtmlH);
 
-        alert('The first series\' name is ' + series.name);
-    });
-       TB._fSelectable(selectableItem);
-
+        TB._fHighchartsCreate(highchartData,selectableItem);
     };
 
     TB._fHighchartData = function(){
@@ -368,6 +363,7 @@ $(document).ready(function(){
                     }
 
                     var chart = TB._fHighcharts(highchartData,selectableItem);
+                    TB._fSelectable(selectableItem,highchartData);
                 },
                 function (tx,err){
                     console.log(err.source +'===='+err.message);
