@@ -13,7 +13,8 @@
 // @grant GM_log
 // @grant GM_deleteValue
 // @grant GM_xmlhttpRequest
-// @require    http://libs.baidu.com/jquery/1.9.0/jquery.min.js
+// @require    http://apps.bdimg.com/libs/jquery/1.10.2/jquery.min.js
+// @require    http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js
 // @require    https://img.hcharts.cn/highcharts/highcharts.js
 // ==/UserScript==
 
@@ -218,8 +219,52 @@ $(document).ready(function(){
         });
     };
 
+    TB._fSelectable = function(items){
+        var sHtml = '<ol id="selectable">';
+        for (var key in items) {
+            if (undefined!=items[key]) {
+                sHtml = sHtml + '<li class="ui-widget-content" name="'+items[key]+'">'+items[key]+'</li>';
+            }
+        }
+        sHtml = sHtml + '</ol>';
+        // $('#highcharts').after(sHtml);
+        $('body').prepend(sHtml);
 
-    TB._fHighcharts = function(highchartData){
+        var sStyle = '\
+          <style>\
+          #selectable .ui-selecting { background: #FECA40; }\
+          #selectable .ui-selected { background: #F39814; color: white; }\
+          #selectable { list-style-type: none; margin: 0; padding: 0; width: 1000px; }\
+          #selectable li { margin: 0; padding: 1px; float: left; width: 100px; height: 24px; font-size: 12px; text-align: center; border: 1px solid #aaa;}\
+          </style>\
+        ';
+
+        $('head').prepend(sStyle);
+
+        $( "#selectable" ).selectable({
+          stop: function() {
+            var chart = $('#highcharts').highcharts();
+
+            for (var key in items) {
+                if (undefined!=items[key]) {
+                    series = chart.get(items[key]);
+                    console.log(1);
+                    series.hide();
+                }
+            }
+
+            $( ".ui-selected", this ).each(function() {
+                var name = $( this ).attr( 'name' );
+                series = chart.get(name);
+                series.show();
+            });
+            return false;
+          }
+        });
+
+    };
+
+    TB._fHighcharts = function(highchartData,selectableItem){
         sHtmlH = '<button id="button">Get first series</button>';
         $('body').prepend(sHtmlH);
 
@@ -228,12 +273,6 @@ $(document).ready(function(){
         sHtmlH = '<div id="highcharts" width="800" height="800"></div>';
         $('body').prepend(sHtmlH);
 
-
-
-
-
-
-        // var highchartData = TB._fHighchartData();
 
        var chart =  $('#highcharts').highcharts({
             chart: {
@@ -277,7 +316,7 @@ $(document).ready(function(){
 
         alert('The first series\' name is ' + series.name);
     });
-        return chart;
+       TB._fSelectable(selectableItem);
 
     };
 
@@ -298,6 +337,7 @@ $(document).ready(function(){
                     aDays[0] + '"';
                 tx.executeSql(sql2,[],function(tx,result){
                     var rows = result.rows;
+                    var selectableItem = new Array();
                     var rowsClassed = {};
                     for (var key in rows) {
                         var name = '"'+rows[key]['pkey']+'_'+rows[key]['updated']+'"';
@@ -305,6 +345,9 @@ $(document).ready(function(){
                     }
 
                     for (var kIndex in _oKeys) {
+
+                        selectableItem.push(_oKeys[kIndex]['pkey']);
+
                         var serieItem = {
                             'id' : _oKeys[kIndex]['pkey'],
                             'name' : _oKeys[kIndex]['pkey'],
@@ -324,7 +367,7 @@ $(document).ready(function(){
                         highchartData['series'].push(serieItem);
                     }
 
-                    var chart = TB._fHighcharts(highchartData);
+                    var chart = TB._fHighcharts(highchartData,selectableItem);
                 },
                 function (tx,err){
                     console.log(err.source +'===='+err.message);
