@@ -275,7 +275,7 @@ $(document).ready(function(){
        var chart =  $('#highcharts').highcharts({
             chart: {
                 type: 'spline',
-                height: 500
+                height: 480
             },
             title: {
                 text: '关键词搜索热度走势图'
