@@ -301,12 +301,13 @@ $(document).ready(function(){
                         enabled: false
                     }
                 }
-            },
+            },/*
             legend: {
                 layout: 'vertical',
                 align: 'right',
                 verticalAlign: 'middle'
-            },
+                verticalAlign: 'middle'
+            },*/
             series: highchartData['series'],
         });
     };
